@@ -1,28 +1,14 @@
-# Standard Readme
+# 基于强化学习DQN算法的AirSim自动驾驶仿真
 
-[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-
-A standard style for README files
-
-Your README file is normally the first entry point to your code. It should tell people why they should use your module, how they can install it, and how they can use it. Standardizing how you write your README makes creating and maintaining your READMEs easier. Great documentation takes work!
-
-This repository contains:
-
-1. [The specification](spec.md) for how a standard README should look.
-2. A link to [a linter](https://github.com/RichardLitt/standard-readme-preset) you can use to keep your README maintained ([work in progress](https://github.com/RichardLitt/standard-readme/issues/5)).
-3. A link to [a generator](https://github.com/RichardLitt/generator-standard-readme) you can use to create standard READMEs.
-4. [A badge](#badge) to point to this spec.
-5. [Examples of standard READMEs](example-readmes/) - such as this file you are reading.
-
-Standard Readme is designed for open source libraries. Although it’s [historically](#background) made for Node and npm projects, it also applies to libraries in other languages and package managers.
+本readme文件用于描述哈尔滨工业大学（深圳）2022年春季学期《人工神经网络》课程，第20组（贺超、王德坤）课设简介及代码使用指南。
 
 
-## Table of Contents
+## 目录
 
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-	- [Generator](#generator)
+- [课设简介](#课设简介)
+- [AirSim操作流程](#AirSim操作流程)
+- [开发环境安装](#开发环境安装)
+	- [运行环境准备](#运行环境准备)
 - [Badge](#badge)
 - [Example Readmes](#example-readmes)
 - [Related Efforts](#related-efforts)
@@ -30,52 +16,32 @@ Standard Readme is designed for open source libraries. Although it’s [historic
 - [Contributing](#contributing)
 - [License](#license)
 
-## Background
+## 课设简介
 
-Standard Readme started with the issue originally posed by [@maxogden](https://github.com/maxogden) over at [feross/standard](https://github.com/feross/standard) in [this issue](https://github.com/feross/standard/issues/141), about whether or not a tool to standardize readmes would be useful. A lot of that discussion ended up in [zcei's standard-readme](https://github.com/zcei/standard-readme/issues/1) repository. While working on maintaining the [IPFS](https://github.com/ipfs) repositories, I needed a way to standardize Readmes across that organization. This specification started as a result of that.
+学习《人工神经网络》课程后，结合小组成员的兴趣，制作此课设，作为对该课程的总结，以自动驾驶的问题为例，学习和实践自动驾驶的强化深度学习的开发过程。本课设对强化学习、经验回放、目标网络和深度Q学习算法进行简单介绍，并利用上述工具在AirSim仿真环境下实现部分自动驾驶功能，并将简要介绍其代码实现过程。
 
-> Your documentation is complete when someone can use your module without ever
-having to look at its code. This is very important. This makes it possible for
-you to separate your module's documented interface from its internal
-implementation (guts). This is good because it means that you are free to
-change the module's internals as long as the interface remains the same.
+## AirSim操作流程
 
-> Remember: the documentation, not the code, defines what a module does.
+Windows系统下双击AirSimNH.exe，提示选择要驾驶的设备，选择是为汽车，否为四旋翼无人机，选择是（汽车）即可。启动了AirSim界面。默认情况下，AirSim处于键盘控制模式。在键盘模式下，可以用方向键控制汽车的移动，控制窗口的观察场景，还可以显示或隐藏和前景有关的子视图。按退格键可以将汽车重置到起始位置。按功能键F1可以显示帮助。
 
-~ [Ken Williams, Perl Hackers](http://mathforum.org/ken/perl_modules.html#document)
+## 开发环境安装
 
-Writing READMEs is way too hard, and keeping them maintained is difficult. By offloading this process - making writing easier, making editing easier, making it clear whether or not an edit is up to spec or not - you can spend less time worrying about whether or not your initial documentation is good, and spend more time writing and using code.
+### 运行环境准备
 
-By having a standard, users can spend less time searching for the information they want. They can also build tools to gather search terms from descriptions, to automatically run example code, to check licensing, and so on.
+安装Anaconda3中的jupyter，同时创建并激活代码运行环境gym，在环境gym中已安装库TensorFlow 2.0和gym。在jupyter中运行代码时，需要将环境切换到gym。在环境gym下，安装Python扩展库msgpack-rpc-python和airsim。其中msgpack-rpc-python是远程过程调用的库，airsim库使用这个库和上一节中的仿真窗口通信。
 
-The goals for this repository are:
+接下来，要让Python程序连接仿真窗口，并读取仿真环境的信息。返回的结果是一个airsim.CarState对象。可以进一步用car_state.speed读取汽车速度，用car_state.kenematis_estimated读取其动力学估计值。除此之外，AirSim还提供了一些API读取仿真环境中的信息。这样的方法一般被命名为airsim.Client.simXXX()，例如simGetImages()可以读取图像，simGetCollisionInfo()可以读取碰撞信息。
 
-1. A well defined **specification**. This can be found in the [Spec document](spec.md). It is a constant work in progress; please open issues to discuss changes.
-2. **An example README**. This Readme is fully standard-readme compliant, and there are more examples in the `example-readmes` folder.
-3. A **linter** that can be used to look at errors in a given Readme. Please refer to the [tracking issue](https://github.com/RichardLitt/standard-readme/issues/5).
-4. A **generator** that can be used to quickly scaffold out new READMEs. See [generator-standard-readme](https://github.com/RichardLitt/generator-standard-readme).
-5. A **compliant badge** for users. See [the badge](#badge).
+接下来介绍如何控制汽车的运行。首先，将AirSim从键盘模式切换到API控制模式，使得汽车的控制由Python API来接管。然后，在API模式下，可以通过airsim.CarClient类的setCarControls()方法控制汽车的运行。方法的参数是一个airsim.CarControls对象，其构造方法有以下参数：
 
-## Install
+throttle：float类型，表示油门
 
-This project uses [node](http://nodejs.org) and [npm](https://npmjs.com). Go check them out if you don't have them locally installed.
+steering：float类型，表示方向盘转动。负数是逆时针转方向盘，正数是顺时针。
 
-```sh
-$ npm install --global standard-readme-spec
-```
+brake：float类型，表示刹车。
 
-## Usage
+handbrake：bool类型，表示是否拉手刹。
 
-This is only a documentation package. You can print out [spec.md](spec.md) to your console:
-
-```sh
-$ standard-readme-spec
-# Prints out the standard-readme spec
-```
-
-### Generator
-
-To use the generator, look at [generator-standard-readme](https://github.com/RichardLitt/generator-standard-readme). There is a global executable to run the generator in that package, aliased as `standard-readme`.
 
 ## Badge
 
