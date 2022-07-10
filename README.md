@@ -9,12 +9,11 @@
 - [AirSim操作流程](#AirSim操作流程)
 - [开发环境安装](#开发环境安装)
 	- [运行环境准备](#运行环境准备)
+	- [回合设计实现和获取起始位置](#回合设计实现和获取起始位置)
+	- [获取坐标信息](#获取坐标信息)
 - [Badge](#badge)
-- [Example Readmes](#example-readmes)
-- [Related Efforts](#related-efforts)
-- [Maintainers](#maintainers)
-- [Contributing](#contributing)
-- [License](#license)
+- [开发者](#开发者)
+- [参考文献](#参考文献)
 
 ## 课设简介
 
@@ -42,6 +41,29 @@ brake：float类型，表示刹车。
 
 handbrake：bool类型，表示是否拉手刹。
 
+### 回合设计实现和获取起始位置
+
+有了奖励函数，自动驾驶问题就变成了强化学习问题。为了训练方便，我们进一步将自动驾驶问题建模为回合制的问题。回合的定义参考了奖励函数的定义。当出现下面任意一个状况时，回合结束：
+
+1、汽车撞到其它东西；
+
+2、汽车速度小于2；
+
+3、汽车和路面中心的最小距离大于3.5时；
+
+4、在设置回合最长时间的情况下，运行时间超过设置时间。
+
+在训练过程中有必要限制回合的最长时间。基于同样的道理，在训练过程中最好选择不同的起点以避免陷入局部行为。同时，在回合开始应该先对汽车进行加速，使得其速度超过2，以免出现因为启动速度过小而是回合立即结束的情况。至此，我们已经初步设计了回合制的强化学习任务。
+
+启动新回合的第一步是要在地图上随机选择一个起始点，这个逻辑有后面的函数get_start_pose()实现。设置起始位置时并没有设置速度，所以汽车可能会沿着设置前的速度继续行驶，甚至会翻车、碰撞。因此当brake_confirm为真，在设置位置前先预设置一次，此时刹车一段时间，然后再正式设置，这样可以让汽车在设置的位置速度为0。然后start_accelerate选项使得汽车从速度0开始加速，使得开始时汽车有一些速度，不至于一开始就判断成回合结束。最后还要记录回合的起始时间，以便后续判断回合是否结束。
+
+然后来看一下如何确定起始位置并将汽车放在环境中任意的位置。代码清单5中函数get_start_pose()确定起始位置，当其参数random=True时，随机选择起始位置，不过要选在路上，并且车的起始朝向需要顺着路的方向。实现代码是先构造代表位置坐标的airsim.Vector3r对象，再用airsim.to_quaternion()函数确定汽车的朝向，用弧度值yaw表示。最后构造airsim.Pose对象，将其作为参数传给airsim.Client类的simSetVehiclePose()方法。
+
+### 获取坐标信息
+
+无论是在回合开始时在路上选择回合起始点，还是在回合过程中计算车到路的距离，都需要获取地图上路的坐标信息。get_roads()函数，根据街道地图返回各街道起始点坐标。函数get_roads()有个参数include_corners，当它为True时，返回的坐标包括在道路拐弯和交叉处的小斜线的坐标，这些小斜线会参与距离的计算；当它为False时，返回的坐标不包括那些小斜线的坐标，只包括较长的道路线段，这可用于回合起始位置确定时的道路选择。
+
+至此，我们已经实现了AirSimCarEnv类，完成了“智能体/环境接口”中的环境接口部分。下图是AirSimNH的街道地图。
 
 ## Badge
 
@@ -55,31 +77,13 @@ To add in Markdown format, use this code:
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 ```
 
-## Example Readmes
 
-To see how the specification has been applied, see the [example-readmes](example-readmes/).
-
-## Related Efforts
-
-- [Art of Readme](https://github.com/noffle/art-of-readme) - 💌 Learn the art of writing quality READMEs.
-- [open-source-template](https://github.com/davidbgk/open-source-template/) - A README template to encourage open-source contributions.
-
-## Maintainers
-
-[@RichardLitt](https://github.com/RichardLitt).
-
-## Contributing
-
-Feel free to dive in! [Open an issue](https://github.com/RichardLitt/standard-readme/issues/new) or submit PRs.
-
-Standard Readme follows the [Contributor Covenant](http://contributor-covenant.org/version/1/3/0/) Code of Conduct.
-
-### Contributors
+## 开发者
 
 This project exists thanks to all the people who contribute. 
 <a href="https://github.com/RichardLitt/standard-readme/graphs/contributors"><img src="https://opencollective.com/standard-readme/contributors.svg?width=890&button=false" /></a>
 
 
-## License
+## 参考文献
 
 [MIT](LICENSE) © Richard Littauer
