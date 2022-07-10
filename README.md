@@ -11,7 +11,6 @@
 	- [运行环境准备](#运行环境准备)
 	- [回合设计实现和获取起始位置](#回合设计实现和获取起始位置)
 	- [获取坐标信息](#获取坐标信息)
-- [Badge](#badge)
 - [开发者](#开发者)
 - [参考文献](#参考文献)
 
@@ -64,18 +63,6 @@ handbrake：bool类型，表示是否拉手刹。
 无论是在回合开始时在路上选择回合起始点，还是在回合过程中计算车到路的距离，都需要获取地图上路的坐标信息。get_roads()函数，根据街道地图返回各街道起始点坐标。函数get_roads()有个参数include_corners，当它为True时，返回的坐标包括在道路拐弯和交叉处的小斜线的坐标，这些小斜线会参与距离的计算；当它为False时，返回的坐标不包括那些小斜线的坐标，只包括较长的道路线段，这可用于回合起始位置确定时的道路选择。
 
 至此，我们已经实现了AirSimCarEnv类，完成了“智能体/环境接口”中的环境接口部分。下图是AirSimNH的街道地图。
-
-## Badge
-
-If your README is compliant with Standard-Readme and you're on GitHub, it would be great if you could add the badge. This allows people to link back to this Spec, and helps adoption of the README. The badge is **not required**.
-
-[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-
-To add in Markdown format, use this code:
-
-```
-[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-```
 
 
 ## 开发者
